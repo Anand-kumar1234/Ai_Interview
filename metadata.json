@@ -1,0 +1,10 @@
+{
+  "name": "AI Interview Practice Partner",
+  "description": "An interactive AI-powered job interview practice platform. Practice voice and chat simulations for Software Engineering, Management, Product, Sales, and other roles with real-time feedback and grammar checks.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
