@@ -26,6 +26,7 @@ export default function VoicePractice({ language, level, scenario, voiceName, on
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [performance, setPerformance] = React.useState<SessionPerformance | null>(null);
   const [showTipsSidebar, setShowTipsSidebar] = React.useState(true);
+  const [usingOfflineFallback, setUsingOfflineFallback] = React.useState(false);
 
   const handleEndSession = async () => {
     // 1. Clean up resources immediately to stop voice streaming & release mic
@@ -251,6 +252,7 @@ export default function VoicePractice({ language, level, scenario, voiceName, on
     setStatus("connecting");
     setErrorMessage("");
     setTranscripts([]);
+    setUsingOfflineFallback(false);
 
     const isLocalMockMode = localStorage.getItem("auraLingo_mockMode") === "true";
     if (isLocalMockMode) {
@@ -344,8 +346,10 @@ export default function VoicePractice({ language, level, scenario, voiceName, on
           }
 
           if (msg.type === "error") {
-            setErrorMessage(msg.message);
-            setStatus("error");
+            console.warn("Speech bridge error from server. Falling back to native offline voice mode:", msg.message);
+            cleanupAudioAndWS();
+            setUsingOfflineFallback(true);
+            startMockVoiceSession();
           }
         } catch (err) {
           console.error("Error parsing WebSocket message:", err);
@@ -353,9 +357,10 @@ export default function VoicePractice({ language, level, scenario, voiceName, on
       };
 
       ws.onerror = (e) => {
-        console.error("WebSocket connection error:", e);
-        setStatus("error");
-        setErrorMessage("Could not connect to the voice bridge. Please try restarting.");
+        console.warn("WebSocket connection error. Gracefully falling back to native offline voice mode:", e);
+        cleanupAudioAndWS();
+        setUsingOfflineFallback(true);
+        startMockVoiceSession();
       };
 
       ws.onclose = () => {
@@ -365,7 +370,7 @@ export default function VoicePractice({ language, level, scenario, voiceName, on
 
     } catch (err: any) {
       console.warn("WebSocket or Live API connection error. Switched to offline simulation fallback.", err);
-      
+      setUsingOfflineFallback(true);
       // Auto fallback to mock voice session on connection errors!
       startMockVoiceSession();
     }
@@ -919,6 +924,13 @@ export default function VoicePractice({ language, level, scenario, voiceName, on
                     <span className="text-slate-400">Listening to you...</span>
                   )}
                 </div>
+
+                {usingOfflineFallback && (
+                  <div className="text-[10px] bg-amber-500/10 border border-amber-500/25 text-amber-300 rounded-full px-3 py-1.5 font-mono font-semibold flex items-center gap-1.5 animate-pulse mt-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    Native Offline Engine Active
+                  </div>
+                )}
 
               </div>
             ) : (
