@@ -8,74 +8,96 @@ export function getMockInterviewQuestion(
   turnIndex: number,
   userMessageText?: string
 ): string {
-  const normText = (userMessageText || "").toLowerCase();
+  const normText = (userMessageText || "").trim().toLowerCase();
 
-  // 1. SOFTWARE ENGINEERING
-  if (languageName.includes("Engineering") || languageName.includes("Software")) {
-    if (scenarioId.includes("coding")) {
-      if (turnIndex === 1) {
-        if (normText.includes("redis") || normText.includes("sliding")) {
-          return "Redis sorted sets are fantastic for sliding windows because of the efficiency of range queries. How would you handle hot-sharding if a single celebrity user triggers millions of API requests per second?";
-        }
-        return "Excellent start. The Token Bucket algorithm is very effective because it handles sudden bursts gracefully. How would you handle persistent storage and rate synchronization across a cluster of 50 distributed servers?";
-      }
-      if (turnIndex === 2) {
-        return "That's a very solid trade-off. Now, how would you protect the internal services downstream from being overwhelmed if the rate limiter itself goes offline or experiences high latency?";
-      }
-      return "Fascinating analysis. Let's finish with this: if you had to write a client-side library to consume this rate-limited API, what retry strategies and backoff configurations would you recommend to minimize consumer friction?";
-    }
-    
-    if (scenarioId.includes("system_design")) {
-      if (normText.includes("websocket") || normText.includes("real-time") || normText.includes("crdt")) {
-        return "Using CRDTs (Conflict-free Replicated Data Types) is indeed the gold standard for Figma-like sync. How would you handle offline sync conflict resolution if a client goes offline for 10 minutes, modifies a shared canvas, and then reconnects?";
-      }
-      return "Understood. High-frequency websocket updates can overwhelm server CPU and memory. How would you structure your load-balancer and server scaling policies to handle 500,000 active, persistent TCP connections?";
+  // Dynamic keyword extraction to create context-aware follow-up questions
+  if (normText.length > 0) {
+    if (normText.includes("redis") || normText.includes("cache") || normText.includes("memcached")) {
+      const cacheQuestions = [
+        "Redis caching is an excellent choice. How do you handle cache invalidation and cache stampede protection under peak load?",
+        "When using distributed caching, how do you handle cache synchronization when multiple microservices write to the underlying database simultaneously?",
+        "What key-eviction strategy (e.g., LRU vs LFU) would you configure for this cache cluster and why?"
+      ];
+      return cacheQuestions[(turnIndex + normText.length) % cacheQuestions.length];
     }
 
-    if (scenarioId.includes("behavioral")) {
-      return "That sounds like a classic team alignment challenge. How did you structure the comparative benchmark data, and what metrics did you track to convince the skeptics?";
+    if (normText.includes("database") || normText.includes("sql") || normText.includes("postgres") || normText.includes("mongo") || normText.includes("db")) {
+      const dbQuestions = [
+        "Database performance is critical here. How would you design your indexing strategy and query optimization to keep latency under 10ms for complex joins?",
+        "When scaling your data layer, would you prefer vertical scaling, read-replicas, or sharding? What are the trade-offs?",
+        "How do you guarantee ACID compliance or eventual consistency across distributed microservice boundaries?"
+      ];
+      return dbQuestions[(turnIndex + normText.length) % dbQuestions.length];
+    }
+
+    if (normText.includes("team") || normText.includes("conflict") || normText.includes("disagree") || normText.includes("manager") || normText.includes("engineer")) {
+      const teamQuestions = [
+        "Navigating interpersonal dynamics effectively is crucial. How do you ensure psychological safety while holding team members accountable for high engineering standards?",
+        "When senior stakeholders disagree on technical direction, what frameworks do you use to evaluate trade-offs and build consensus?",
+        "How do you mentor junior team members without micromanaging or blocking your own high-priority deliverables?"
+      ];
+      return teamQuestions[(turnIndex + normText.length) % teamQuestions.length];
+    }
+
+    if (normText.includes("test") || normText.includes("ci") || normText.includes("cd") || normText.includes("deploy") || normText.includes("pipeline")) {
+      const pipelineQuestions = [
+        "Robust deployment pipelines build confidence. How do you balance fast build times with comprehensive integration and end-to-end test suites?",
+        "What rollback or feature-flag strategies do you deploy to safeguard production if a critical regression slips past CI?",
+        "How do you manage secret keys, environment variables, and zero-downtime database migrations in your CD pipeline?"
+      ];
+      return pipelineQuestions[(turnIndex + normText.length) % pipelineQuestions.length];
+    }
+
+    if (normText.includes("user") || normText.includes("product") || normText.includes("metric") || normText.includes("kpi") || normText.includes("customer")) {
+      const productQuestions = [
+        "Aligning technical decisions with business impact is vital. What leading indicators or product usage telemetry do you track to measure success?",
+        "How do you prioritize fixing technical debt versus shipping new user-requested features when deadlines are tight?",
+        "When user feedback directly contradicts product analytics data, how do you investigate and determine the right path forward?"
+      ];
+      return productQuestions[(turnIndex + normText.length) % productQuestions.length];
     }
   }
 
-  // 2. MANAGEMENT & LEADERSHIP
-  if (languageName.includes("Management") || languageName.includes("Leadership")) {
-    if (scenarioId.includes("conflict")) {
-      return "That's a very collaborative approach. What if one of the engineers is extremely defensive and starts accusing you or the other teammate of playing favorites? How do you maintain psychological safety and objectivity?";
-    }
-    if (scenarioId.includes("underperformance")) {
-      return "Empathetic active listening is indeed the correct baseline. If, after two weeks of the performance roadmap, the employee continues to miss critical project deadlines, how do you escalate this while maintaining team morale?";
-    }
-    return "That's a strategic alignment challenge. What concrete business metrics or risks would you present to the executive team to convince them to expand our engineering bandwidth?";
-  }
-
-  // 3. PRODUCT MANAGEMENT
-  if (languageName.includes("Product")) {
-    if (scenarioId.includes("design")) {
-      return "Targeting children aged 5-10 with gamified milestones is brilliant. How do you design the monetization or premium subscription features of this device without making parents feel exploited or violating privacy regulations?";
-    }
-    if (scenarioId.includes("prioritization")) {
-      return "The RICE framework is very effective. How would you justify prioritize a critical system security patch (which has low RICE reach/confidence metrics but massive business risk) over a highly visible user-facing feature?";
-    }
-    return "Segmenting by platform and geography is the perfect starting diagnostic. If you find the drop is isolated entirely to Android users, what specific engineering or user behavior signals would you request next?";
-  }
-
-  // 4. DATA SCIENCE & AI
-  if (languageName.includes("Data Science") || languageName.includes("AI")) {
-    if (scenarioId.includes("ml_system")) {
-      return "The retrieval and ranking two-stage pipeline is a robust design. How do you handle cold-start recommendations for a brand new user who has zero historical session data or profile telemetry?";
-    }
-    return "That's a very rigorous approach. If the product manager insists on launching the new checkout flow because of the 1% revenue lift, despite the p-value being 0.08, how do you handle this disagreement?";
-  }
-
-  // Generic interview questions fallbacks
-  const genericQuestions = [
-    "Thank you. That makes complete sense. Can you elaborate on the most critical trade-off you had to accept in that decision?",
-    "Very detailed answer. How would you measure the long-term success of this strategy six months after implementation?",
-    "Excellent. If resources were suddenly cut in half, what features or sub-tasks would you cut first and why?",
-    "That is highly professional. Thank you for sharing that experience. Let's move on to the next scenario."
+  // Domain-specific tailored conversation turns
+  const techQuestionPool = [
+    "That is a clear explanation. Moving deeper: how would you monitor latency, error rates, and resource utilization in a high-throughput production environment?",
+    "Great point. What security vulnerabilities (like OWASP Top 10, auth bypass, or injection) would you specifically audit for in this setup?",
+    "Very thoughtful approach. If this system experienced a 10x sudden traffic spike during a flash sale, where would the primary bottleneck occur first?",
+    "Solid technical reasoning. How do you handle failure recovery and circuit breaking if a downstream dependency fails unexpectedly?",
+    "Excellent analysis. Can you walk me through how you would conduct a post-mortem root cause analysis if an outage did occur?",
+    "Well articulated. How do you ensure API backward compatibility when deploying major version updates to active client SDKs?",
+    "Impressive clarity. To wrap up this technical section, what would you re-architect if you had double the engineering headcount and timeline?"
   ];
 
-  return genericQuestions[Math.min(turnIndex, genericQuestions.length - 1)];
+  const managementQuestionPool = [
+    "That demonstrates clear leadership. How do you track and communicate project milestones to non-technical executive stakeholders?",
+    "Very empathetic perspective. How do you handle situations where team members are suffering from burnout due to shifting deadline priorities?",
+    "Strong strategic alignment. How do you evaluate whether to build a capability in-house or purchase a vendor solution?",
+    "Great operational insight. How do you foster a culture of innovation while enforcing strict compliance and security constraints?",
+    "Excellent leadership framework. How do you structure feedback during annual performance reviews to drive meaningful professional growth?",
+    "To conclude this leadership scenario: what is the most valuable leadership lesson you learned from a past mistake or failed launch?"
+  ];
+
+  const genericQuestionPool = [
+    "Thank you. That makes complete sense. Can you elaborate on the most critical trade-off you had to accept in that decision?",
+    "Very detailed answer. How would you measure the long-term success of this strategy six months after implementation?",
+    "Excellent response. If project resources or timeline were suddenly cut in half, what scope would you de-prioritize first and why?",
+    "That shows high professional maturity. How would you present these findings to executive leaders to secure budget approval?",
+    "Spot-on reasoning. What alternative approaches did you consider before settling on this specific strategy?",
+    "Great structure in your answer. How do you keep your domain skills updated with rapidly evolving industry best practices?",
+    "Very comprehensive explanation. Thank you for walking me through your thought process in such detail."
+  ];
+
+  let pool = genericQuestionPool;
+  if (languageName.includes("Engineering") || languageName.includes("Software") || languageName.includes("Data") || languageName.includes("AI")) {
+    pool = techQuestionPool;
+  } else if (languageName.includes("Management") || languageName.includes("Leadership") || languageName.includes("Product")) {
+    pool = managementQuestionPool;
+  }
+
+  // Use modulo arithmetic over turnIndex so every single turn gets a unique question without repeating
+  const safeIndex = Math.abs(turnIndex) % pool.length;
+  return pool[safeIndex];
 }
 
 // Generate intelligent grammar corrections locally
