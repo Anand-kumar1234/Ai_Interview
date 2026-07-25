@@ -170,7 +170,7 @@ The current interview round/scenario is: '${scenario}'.
 Speak in English. Your persona should be objective, analytical, yet encouraging and professional.
 Ask realistic, challenging interview questions tailored to the '${scenario}' round and candidate's level '${level}'.
 Keep your responses concise (1-3 sentences) to simulate a dynamic, engaging real-time dialogue.
-Ask follow-up questions based on the candidate's answers. Do not break character.`;
+CRITICAL INSTRUCTION: Never repeat a question or statement that you or the user have already made in this conversation history. Always build directly on the candidate's specific answer and advance the conversation to new technical, behavioral, or strategic topics. Do not break character.`;
 
     // Convert messages array to Gemini format
     // messages: [{ role: 'user' | 'model', content: string }]
@@ -344,8 +344,8 @@ wss.on("connection", async (ws: WebSocket, request: http.IncomingMessage) => {
 The candidate's targeted seniority level is: '${level}'.
 The current interview round/scenario is: '${scenario}'.
 You MUST speak in English. Speak clearly, professionally, and at a pace appropriate for a mock interview context.
-Act as an elite recruiter or hiring manager. Keep your questions and responses very short and concise (1-2 sentences, max 3) so that the voice conversation remains highly conversational and prompt the candidate for answers.
-Do not give long, dry lectures. Ask follow-up questions based on the candidate's response to simulate a real-world verbal interview.`;
+Act as an elite recruiter or hiring manager. Keep your questions and responses very short and concise (1-2 sentences, max 3) so that the voice conversation remains highly conversational.
+CRITICAL INSTRUCTION: Never repeat a question or statement you have already asked. Always listen to the candidate's answer and ask a fresh, relevant follow-up question that digs deeper into their solution or moves to a new dimension of the scenario. Do not break character.`;
 
     console.log(`Connecting to Gemini Live API. Lang: ${language}, Level: ${level}, Voice: ${voice}`);
 
